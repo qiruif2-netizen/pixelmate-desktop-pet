@@ -36,6 +36,28 @@ function go(target: Section) {
 
 <template>
   <div class="app-shell">
+    <div class="stillmind-backdrop" aria-hidden="true">
+      <span class="ambient-orb orb-one"></span>
+      <span class="ambient-orb orb-two"></span>
+      <svg class="ambient-lines" viewBox="0 0 1200 820" preserveAspectRatio="none">
+        <g class="line-field line-field-one">
+          <path d="M-80 210 C190 8 360 54 500 270 S780 530 1280 172" />
+          <path d="M-80 232 C184 30 350 78 488 288 S790 548 1280 194" />
+          <path d="M-80 254 C178 52 340 102 476 306 S800 566 1280 216" />
+          <path d="M-80 276 C172 74 330 126 464 324 S810 584 1280 238" />
+          <path d="M-80 298 C166 96 320 150 452 342 S820 602 1280 260" />
+        </g>
+        <g class="line-field line-field-two">
+          <path d="M220 900 C286 650 478 548 652 604 S984 710 1260 448" />
+          <path d="M246 900 C306 672 486 574 660 628 S994 728 1260 474" />
+          <path d="M272 900 C326 694 494 600 668 652 S1004 746 1260 500" />
+          <path d="M298 900 C346 716 502 626 676 676 S1014 764 1260 526" />
+        </g>
+      </svg>
+      <span class="signal-dot dot-one"></span>
+      <span class="signal-dot dot-two"></span>
+    </div>
+
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark"><Sparkles :size="20" /></div>
@@ -51,8 +73,8 @@ function go(target: Section) {
 
       <div class="sidebar-card">
         <span class="eyebrow">LOCAL FIRST</span>
-        <p>图片、角色数据和服务密钥默认仅保存在本机。</p>
-        <a href="https://github.com" target="_blank" rel="noreferrer"><Github :size="15" /> 开源计划</a>
+        <p>角色数据和服务密钥默认仅保存在本机。</p>
+        <a href="https://github.com/qiruif2-netizen/pixelmate-desktop-pet" target="_blank" rel="noreferrer"><Github :size="15" /> 开源计划</a>
       </div>
       <p class="version">Demo v0.1.0 · Windows / macOS</p>
     </aside>
