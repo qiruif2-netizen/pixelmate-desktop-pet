@@ -65,14 +65,12 @@ const foods = [
 let behaviorTimer: number | undefined;
 let scheduleTimer: number | undefined;
 let frameTimer: number | undefined;
-let walkTimer: number | undefined;
 let bubbleTimer: number | undefined;
 let actionToken = 0;
 
 function clearMotionTimers() {
   window.clearTimeout(behaviorTimer);
   window.clearInterval(frameTimer);
-  window.clearInterval(walkTimer);
 }
 
 function say(text: string, duration = 4600) {
@@ -91,7 +89,7 @@ function finishBehavior(token: number) {
   behavior.value = "idle";
   actionFrame.value = 0;
   window.clearInterval(frameTimer);
-  window.clearInterval(walkTimer);
+  if ("__TAURI_INTERNALS__" in window) void invoke("stop_pet_walk");
   scheduleNextBehavior();
 }
 
@@ -102,6 +100,7 @@ function playBehavior(next: PetBehavior, duration: number, frameMs = 0) {
   actionFrame.value = 0;
   if (frameMs) frameTimer = window.setInterval(() => actionFrame.value += 1, frameMs);
   if (next === "walk") void startNativeWalk(token, duration);
+  else if ("__TAURI_INTERNALS__" in window) void invoke("stop_pet_walk");
   behaviorTimer = window.setTimeout(() => finishBehavior(token), duration);
 }
 
@@ -133,7 +132,7 @@ function runNaturalBehavior() {
 
 async function startNativeWalk(token: number, duration: number) {
   if (!("__TAURI_INTERNALS__" in window)) return;
-  const { PhysicalPosition, currentMonitor, getCurrentWindow } = await import("@tauri-apps/api/window");
+  const { currentMonitor, getCurrentWindow } = await import("@tauri-apps/api/window");
   if (token !== actionToken) return;
   const petWindow = getCurrentWindow();
   const [monitor, initialPosition] = await Promise.all([
@@ -142,7 +141,7 @@ async function startNativeWalk(token: number, duration: number) {
   ]);
   if (!monitor || token !== actionToken) return;
 
-  let x = initialPosition.x;
+  const x = initialPosition.x;
   const minX = monitor.workArea.position.x;
   const physicalWindowWidth = Math.max(180, window.outerWidth) * monitor.scaleFactor;
   const maxX = monitor.workArea.position.x + monitor.workArea.size.width - physicalWindowWidth;
@@ -150,22 +149,24 @@ async function startNativeWalk(token: number, duration: number) {
   else if (x > maxX - 35) facing.value = -1;
   else facing.value = Math.random() > .5 ? 1 : -1;
 
-  const tickMs = 68;
-  const pixelsPerTick = 3.8 * monitor.scaleFactor * Math.max(.65, appState.appearance.animationSpeed || 1);
-  const stopAt = Date.now() + duration;
-  const moveNextFrame = async () => {
-    if (token !== actionToken || Date.now() >= stopAt) return;
-    x += pixelsPerTick * facing.value;
-    if (x <= minX || x >= maxX) {
-      x = Math.max(minX, Math.min(maxX, x));
-      facing.value = facing.value === 1 ? -1 : 1;
-    }
-    await petWindow.setPosition(new PhysicalPosition(Math.round(x), initialPosition.y));
-    if (token === actionToken && Date.now() < stopAt) {
-      walkTimer = window.setTimeout(() => void moveNextFrame(), tickMs);
-    }
-  };
-  void moveNextFrame();
+  const stepMs = 84;
+  const pixelsPerStep = 4.7 * monitor.scaleFactor * Math.max(.65, appState.appearance.animationSpeed || 1);
+  const plannedDistance = Math.ceil(duration / stepMs) * pixelsPerStep;
+  if (facing.value === 1 && x + plannedDistance > maxX && x - plannedDistance >= minX) facing.value = -1;
+  if (facing.value === -1 && x - plannedDistance < minX && x + plannedDistance <= maxX) facing.value = 1;
+  if (token !== actionToken) return;
+  await invoke("start_pet_walk", {
+    request: {
+      startX: x,
+      y: initialPosition.y,
+      minX,
+      maxX,
+      direction: facing.value,
+      durationMs: duration,
+      stepMs,
+      pixelsPerStep,
+    },
+  });
 }
 
 function react(kind: "pet" | "gift") {
@@ -178,6 +179,7 @@ function react(kind: "pet" | "gift") {
 function feed(food: (typeof foods)[number]) {
   clearMotionTimers();
   actionToken += 1;
+  if ("__TAURI_INTERNALS__" in window) void invoke("stop_pet_walk");
   behavior.value = "look";
   flyingFood.value = food.icon;
   say(`${food.name}！是给我的吗？`, 3300);
@@ -192,6 +194,7 @@ function feed(food: (typeof foods)[number]) {
 
 async function hideWindow() {
   if ("__TAURI_INTERNALS__" in window) {
+    await invoke("stop_pet_walk");
     const { getCurrentWindow } = await import("@tauri-apps/api/window");
     await getCurrentWindow().hide();
   } else window.close();
@@ -201,6 +204,7 @@ async function startDrag(event: MouseEvent) {
   if (event.button !== 0 || !("__TAURI_INTERNALS__" in window)) return;
   clearMotionTimers();
   actionToken += 1;
+  await invoke("stop_pet_walk");
   behavior.value = "drag";
   const { getCurrentWindow } = await import("@tauri-apps/api/window");
   await getCurrentWindow().startDragging();
@@ -234,6 +238,7 @@ watch(
   (mode) => {
     clearMotionTimers();
     actionToken += 1;
+    if ("__TAURI_INTERNALS__" in window) void invoke("stop_pet_walk");
     behavior.value = "idle";
     actionFrame.value = 0;
     if (mode === "stroll") {
@@ -253,6 +258,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearMotionTimers();
+  if ("__TAURI_INTERNALS__" in window) void invoke("stop_pet_walk");
   window.clearInterval(scheduleTimer);
   window.clearTimeout(bubbleTimer);
 });

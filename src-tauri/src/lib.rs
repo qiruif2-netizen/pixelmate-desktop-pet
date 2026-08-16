@@ -1,10 +1,34 @@
 use serde::{Deserialize, Serialize};
+use std::{
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+    thread,
+    time::{Duration, Instant},
+};
 use tauri::{
     image::Image,
     menu::{MenuBuilder, MenuItemBuilder},
     tray::TrayIconBuilder,
     Manager,
 };
+
+#[derive(Default)]
+struct PetMotionState(Arc<AtomicU64>);
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PetWalkRequest {
+    start_x: i32,
+    y: i32,
+    min_x: i32,
+    max_x: i32,
+    direction: i32,
+    duration_ms: u64,
+    step_ms: u64,
+    pixels_per_step: f64,
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -124,6 +148,55 @@ fn show_manager(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn stop_pet_walk(state: tauri::State<'_, PetMotionState>) {
+    state.0.fetch_add(1, Ordering::SeqCst);
+}
+
+#[tauri::command]
+fn start_pet_walk(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, PetMotionState>,
+    request: PetWalkRequest,
+) -> Result<(), String> {
+    if request.max_x <= request.min_x || !request.pixels_per_step.is_finite() {
+        return Err("桌宠移动范围无效".into());
+    }
+
+    let pet = app
+        .get_webview_window("pet")
+        .ok_or_else(|| "找不到桌宠窗口".to_string())?;
+    let generation = state.0.fetch_add(1, Ordering::SeqCst) + 1;
+    let active_generation = Arc::clone(&state.0);
+    let duration = Duration::from_millis(request.duration_ms.clamp(300, 10_000));
+    let step_delay = Duration::from_millis(request.step_ms.clamp(72, 160));
+    let step = request.pixels_per_step.clamp(1.0, 12.0);
+    let direction = if request.direction >= 0 { 1.0 } else { -1.0 };
+
+    thread::spawn(move || {
+        let started = Instant::now();
+        let mut x = request.start_x as f64;
+        while started.elapsed() < duration
+            && active_generation.load(Ordering::SeqCst) == generation
+        {
+            let next_x = x + step * direction;
+            x = next_x.clamp(request.min_x as f64, request.max_x as f64);
+            if pet
+                .set_position(tauri::PhysicalPosition::new(x.round() as i32, request.y))
+                .is_err()
+            {
+                break;
+            }
+            if x <= request.min_x as f64 || x >= request.max_x as f64 {
+                break;
+            }
+            thread::sleep(step_delay);
+        }
+    });
+
+    Ok(())
+}
+
 fn tray_icon() -> Image<'static> {
     let width = 24usize;
     let height = 24usize;
@@ -153,6 +226,7 @@ fn tray_icon() -> Image<'static> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(PetMotionState::default())
         .setup(|app| {
             let manager_item = MenuItemBuilder::with_id("manager", "打开角色管理器").build(app)?;
             let pet_item = MenuItemBuilder::with_id("pet", "显示桌宠").build(app)?;
@@ -192,7 +266,13 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![chat_completion, show_pet, show_manager])
+        .invoke_handler(tauri::generate_handler![
+            chat_completion,
+            show_pet,
+            show_manager,
+            start_pet_walk,
+            stop_pet_walk
+        ])
         .run(tauri::generate_context!())
         .expect("error while running PixelMate");
 }
