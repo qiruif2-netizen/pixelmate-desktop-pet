@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PixelMate",
+  "version": "0.1.0",
+  "identifier": "com.pixelmate.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "PixelMate · 像素陪伴实验室",
+        "width": 1180,
+        "height": 780,
+        "minWidth": 860,
+        "minHeight": 620,
+        "center": true,
+        "resizable": true
+      },
+      {
+        "label": "pet",
+        "url": "#/pet",
+        "title": "PixelMate Pet",
+        "width": 300,
+        "height": 360,
+        "minWidth": 180,
+        "minHeight": 220,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "resizable": true,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "copyright": "Copyright © 2026 PixelMate Contributors",
+    "shortDescription": "把一张图片变成像素陪伴桌宠",
+    "longDescription": "一个本地优先、可自带 AI API 的开源像素桌宠 Demo。",
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true }
+    },
+    "macOS": {
+      "minimumSystemVersion": "13.0"
+    }
+  }
+}

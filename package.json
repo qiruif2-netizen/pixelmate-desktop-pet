@@ -1,0 +1,35 @@
+{
+  "name": "pixelmate-desktop-pet",
+  "private": true,
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qiruif2-netizen/pixelmate-desktop-pet.git"
+  },
+  "homepage": "https://github.com/qiruif2-netizen/pixelmate-desktop-pet#readme",
+  "bugs": {
+    "url": "https://github.com/qiruif2-netizen/pixelmate-desktop-pet/issues"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "test": "vitest run",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.8.0",
+    "lucide-vue-next": "^0.468.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.4",
+    "@types/node": "^24.0.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8",
+    "vue-tsc": "^2.2.0"
+  },
+  "packageManager": "pnpm@11.19.0"
+}
