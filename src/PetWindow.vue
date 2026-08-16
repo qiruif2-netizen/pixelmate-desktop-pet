@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { EyeOff, Gift, Heart, MessageCircle, PackageOpen, Settings, X } from "lucide-vue-next";
 import { invoke } from "@tauri-apps/api/core";
 import { appState, interact } from "./lib/state";
@@ -20,6 +20,9 @@ const hasSpriteSheet = computed(() => Boolean(selectedPet.value?.spriteSheet));
 const displayImage = computed(() => behavior.value === "eat" && actionImages.value.length
   ? actionImages.value[actionFrame.value % actionImages.value.length]
   : appState.appearance.image);
+const idleAnimationClass = computed(() => behavior.value === "idle"
+  ? `idle-mode-${appState.appearance.animation}`
+  : "");
 
 const spriteFrame = computed(() => {
   const frames = selectedPet.value?.spriteSheet?.frames;
@@ -111,6 +114,8 @@ function runNaturalBehavior() {
   const roll = Math.random();
   if (appState.stats.energy < 28 || (new Date().getHours() >= 23 && roll < .48)) {
     playBehavior("sleep", 5500);
+  } else if (appState.appearance.animation === "stroll" && roll < .62) {
+    playBehavior("walk", 3500 + Math.random() * 2600, 190);
   } else if (roll < .28) {
     playBehavior("blink", 520);
   } else if (roll < .49) {
@@ -118,8 +123,6 @@ function runNaturalBehavior() {
     playBehavior("look", 1700);
   } else if (roll < .68) {
     playBehavior("groom", 2300);
-  } else if (roll < .84 && appState.appearance.animation !== "none") {
-    playBehavior("walk", 3500 + Math.random() * 2600, 190);
   } else {
     const weatherLine = appState.weather.temperature == null ? "" : `${appState.weather.city}现在 ${appState.weather.temperature}°C，出门要照顾好自己。`;
     const lines = ["我在这里陪你。", "要记得喝水呀。", "今天也辛苦啦。", "摸摸我嘛。", weatherLine].filter(Boolean);
@@ -222,6 +225,21 @@ function checkSchedule() {
   playBehavior("happy", 2800, 240);
 }
 
+watch(
+  () => appState.appearance.animation,
+  (mode) => {
+    clearMotionTimers();
+    actionToken += 1;
+    behavior.value = "idle";
+    actionFrame.value = 0;
+    if (mode === "stroll") {
+      behaviorTimer = window.setTimeout(() => playBehavior("walk", 4800, 190), 450);
+    } else {
+      scheduleNextBehavior(4600);
+    }
+  },
+);
+
 onMounted(() => {
   window.setTimeout(() => say(appState.profile.greeting), 300);
   scheduleNextBehavior(2200);
@@ -249,13 +267,13 @@ onBeforeUnmount(() => {
           <div
             v-if="hasSpriteSheet && !(behavior === 'eat' && actionImages.length)"
             class="pet-atlas-frame"
-            :class="[`behavior-${behavior}`]"
+            :class="[`behavior-${behavior}`, idleAnimationClass]"
             :style="spriteStyle"
           />
           <img
             v-else
             :src="displayImage"
-            :class="[`pet-${appState.appearance.animation}`, `behavior-${behavior}`]"
+            :class="[`behavior-${behavior}`, idleAnimationClass]"
             alt="桌宠"
             draggable="false"
           />
