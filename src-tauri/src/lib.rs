@@ -227,7 +227,12 @@ fn tray_icon() -> Image<'static> {
 pub fn run() {
     tauri::Builder::default()
         .manage(PetMotionState::default())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--autostart"]),
+        ))
         .setup(|app| {
+            let launched_at_login = std::env::args().any(|argument| argument == "--autostart");
             let manager_item = MenuItemBuilder::with_id("manager", "打开角色管理器").build(app)?;
             let pet_item = MenuItemBuilder::with_id("pet", "显示桌宠").build(app)?;
             let quit_item = MenuItemBuilder::with_id("quit", "退出 PixelMate").build(app)?;
@@ -256,6 +261,16 @@ pub fn run() {
                     _ => {}
                 })
                 .build(app)?;
+
+            if launched_at_login {
+                if let Some(main) = app.get_webview_window("main") {
+                    let _ = main.hide();
+                }
+                if let Some(pet) = app.get_webview_window("pet") {
+                    let _ = pet.set_always_on_top(true);
+                    let _ = pet.show();
+                }
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

@@ -24,6 +24,7 @@ Tauri 本身支持 Windows 和 macOS，但 macOS 应用必须在 Mac 或 GitHub 
 - 用户自行配置 OpenAI Chat Completions 兼容 API
 - 用户自行配置天气服务，支持本机时间和上下班提醒
 - 本地音乐播放
+- 用户主动授权的开机自启；登录系统后直接显示桌宠
 - 配置和聊天记录默认保存在用户本机
 
 ## 最快开始
@@ -59,15 +60,6 @@ chmod +x scripts/start-macos.sh
 ```bash
 chmod +x 启动桌面宠物.command
 ```
-
-### 只查看网页管理器
-
-```bash
-npm install
-npm run dev
-```
-
-网页模式可以查看图鉴和配置界面，但不能创建操作系统级透明桌宠。真正的桌宠必须运行 `npm run tauri dev`。
 
 ## 构建安装包
 
@@ -121,7 +113,6 @@ scripts/                平台启动脚本
 - macOS 透明窗口需要 Tauri 的 `macos-private-api`，因此当前方案不适合提交 Mac App Store，但可用于 GitHub 开源分发。
 - 未签名安装包可能触发 Windows SmartScreen 或 macOS Gatekeeper。
 - Windows 和 macOS 必须分别在对应系统上构建。
-- 浏览器模式调用部分 AI 服务时可能受到 CORS 限制，Tauri 模式由 Rust 发起请求。
 
 ## 版权与许可证
 

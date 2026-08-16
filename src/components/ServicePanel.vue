@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { Bot, Check, Clock3, CloudSun, Eye, EyeOff, LoaderCircle, LocateFixed, Music2, Play, Square, Upload } from "lucide-vue-next";
+import { Bot, Check, Clock3, CloudSun, Eye, EyeOff, LoaderCircle, LocateFixed, Music2, Play, Power, Square, Upload } from "lucide-vue-next";
 import { appState } from "../lib/state";
 import { testAiConnection } from "../lib/ai";
 
@@ -15,7 +15,43 @@ const audio = new Audio();
 const playing = ref(false);
 const localClock = ref("");
 const locationBusy = ref(false);
+const autostartEnabled = ref(false);
+const autostartBusy = ref(false);
+const autostartText = ref("");
 let clockTimer: number | undefined;
+
+async function loadAutostartState() {
+  if (!("__TAURI_INTERNALS__" in window)) {
+    autostartText.value = "开机自启只在安装后的桌面应用中可用。";
+    return;
+  }
+  try {
+    const { isEnabled } = await import("@tauri-apps/plugin-autostart");
+    autostartEnabled.value = await isEnabled();
+  } catch (error) {
+    autostartText.value = error instanceof Error ? error.message : "无法读取开机自启状态";
+  }
+}
+
+async function changeAutostart(event: Event) {
+  const requested = (event.target as HTMLInputElement).checked;
+  autostartBusy.value = true;
+  autostartText.value = "";
+  try {
+    const { disable, enable, isEnabled } = await import("@tauri-apps/plugin-autostart");
+    if (requested) await enable();
+    else await disable();
+    autostartEnabled.value = await isEnabled();
+    autostartText.value = autostartEnabled.value
+      ? "已获得你的授权，下次登录系统后会直接显示桌宠。"
+      : "已关闭，PixelMate 不会随系统启动。";
+  } catch (error) {
+    autostartEnabled.value = !requested;
+    autostartText.value = error instanceof Error ? error.message : "开机自启设置失败";
+  } finally {
+    autostartBusy.value = false;
+  }
+}
 
 function updateClock() {
   localClock.value = new Intl.DateTimeFormat("zh-CN", {
@@ -121,6 +157,7 @@ audio.addEventListener("ended", () => {
 onMounted(() => {
   updateClock();
   clockTimer = window.setInterval(updateClock, 1000);
+  void loadAutostartState();
 });
 
 onBeforeUnmount(() => {
@@ -163,6 +200,17 @@ onBeforeUnmount(() => {
       <label>上班问候<input v-model="appState.schedule.startMessage" maxlength="80" /></label>
       <label>下班问候<input v-model="appState.schedule.endMessage" maxlength="80" /></label>
       <p class="schedule-summary">周一至周五 · {{ appState.schedule.workStart }} 上班 · {{ appState.schedule.workEnd }} 下班</p>
+    </article>
+
+    <article class="card service-config startup-config">
+      <div class="service-title"><span class="service-icon startup"><Power :size="19" /></span><div><span class="eyebrow">SYSTEM STARTUP</span><h3>开机自动陪伴</h3></div></div>
+      <p class="muted">默认关闭。只有你主动打开开关后，PixelMate 才会注册为登录启动项；之后可以随时关闭。</p>
+      <label class="toggle-row" :class="{ disabled: autostartBusy }">
+        <div><strong>登录系统后自动显示桌宠</strong><span>不会自动打开角色管理器</span></div>
+        <input type="checkbox" :checked="autostartEnabled" :disabled="autostartBusy" @change="changeAutostart" /><i></i>
+      </label>
+      <p v-if="autostartText" class="result-message">{{ autostartText }}</p>
+      <p class="startup-privacy">宠物选择、养成进度和 API 配置保存在本机，重新开机不需要再次填写。请勿在公共电脑启用。</p>
     </article>
 
     <article class="card service-config music-config">
