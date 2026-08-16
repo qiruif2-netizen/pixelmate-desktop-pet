@@ -46,6 +46,13 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "copyright": "Copyright © 2026 PixelMate Contributors",
     "shortDescription": "把一张图片变成像素陪伴桌宠",
     "longDescription": "一个本地优先、可自带 AI API 的开源像素桌宠 Demo。",
