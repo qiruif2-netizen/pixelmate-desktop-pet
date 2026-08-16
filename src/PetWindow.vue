@@ -150,10 +150,10 @@ async function startNativeWalk(token: number, duration: number) {
   else if (x > maxX - 35) facing.value = -1;
   else facing.value = Math.random() > .5 ? 1 : -1;
 
-  const tickMs = 55;
-  const pixelsPerTick = 3.2 * monitor.scaleFactor * Math.max(.65, appState.appearance.animationSpeed || 1);
+  const tickMs = 68;
+  const pixelsPerTick = 3.8 * monitor.scaleFactor * Math.max(.65, appState.appearance.animationSpeed || 1);
   const stopAt = Date.now() + duration;
-  walkTimer = window.setInterval(async () => {
+  const moveNextFrame = async () => {
     if (token !== actionToken || Date.now() >= stopAt) return;
     x += pixelsPerTick * facing.value;
     if (x <= minX || x >= maxX) {
@@ -161,7 +161,11 @@ async function startNativeWalk(token: number, duration: number) {
       facing.value = facing.value === 1 ? -1 : 1;
     }
     await petWindow.setPosition(new PhysicalPosition(Math.round(x), initialPosition.y));
-  }, tickMs);
+    if (token === actionToken && Date.now() < stopAt) {
+      walkTimer = window.setTimeout(() => void moveNextFrame(), tickMs);
+    }
+  };
+  void moveNextFrame();
 }
 
 function react(kind: "pet" | "gift") {
@@ -260,7 +264,7 @@ onBeforeUnmount(() => {
 
     <div class="pet-stage" @mousedown="startDrag" @dblclick="react('pet')">
       <span v-if="flyingFood" class="flying-food">{{ flyingFood }}</span>
-      <div v-if="appState.appearance.image" class="pet-sprite-wrap" :style="petStyle">
+      <div v-if="appState.appearance.image" class="pet-sprite-wrap" :class="{ 'is-walking': behavior === 'walk' }" :style="petStyle">
         <span class="pet-ground-shadow" />
         <span v-if="behavior === 'eat'" class="chew-sparkles">✦ ♡ ✦</span>
         <div class="pet-facing">
