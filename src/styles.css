@@ -175,8 +175,11 @@ input:focus,textarea:focus,select:focus { border-color: #d79068; box-shadow: 0 0
 .pet-facing { width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;transform:scaleX(var(--pet-facing,1));transform-origin:bottom center;transition:transform .14s ease-out;z-index:1; }
 .pet-atlas-frame { height:100%;max-width:100%;aspect-ratio:var(--frame-aspect,.75);overflow:hidden;contain:paint;background-repeat:no-repeat;background-clip:padding-box;image-rendering:pixelated;filter:drop-shadow(0 12px 8px rgba(0,0,0,.2));transform-origin:bottom center;backface-visibility:hidden;will-change:transform,background-position; }
 .pet-ground-shadow { position:absolute;left:50%;bottom:1.5%;width:48%;height:7%;border-radius:50%;background:rgba(41,30,19,.2);filter:blur(5px);transform:translateX(-50%);transform-origin:center;animation:shadow-breathe 3.8s ease-in-out infinite; }
-.pet-sprite-wrap.is-walking .pet-atlas-frame { filter:drop-shadow(0 7px 4px rgba(0,0,0,.14)); }
-.pet-sprite-wrap.is-walking .pet-ground-shadow { opacity:.48;filter:blur(3px);animation:none; }
+.pet-sprite-wrap.is-walking { contain:layout paint style; }
+.pet-sprite-wrap.is-walking .pet-facing { transition:none; }
+.pet-sprite-wrap.is-walking .pet-atlas-frame,
+.pet-sprite-wrap.is-walking img { animation:none!important;transform:none!important;filter:none!important;will-change:background-position; }
+.pet-sprite-wrap.is-walking .pet-ground-shadow { display:none; }
 .pet-menu { width:145px; }
 .pet-inventory { position:absolute;left:10px;right:10px;bottom:12px;padding:10px;background:rgba(255,253,248,.98);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px rgba(37,29,21,.2);z-index:5; }
 .pet-inventory header { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
