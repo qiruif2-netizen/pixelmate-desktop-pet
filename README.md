@@ -9,8 +9,8 @@ PixelMate 是一个基于 Vue 3、Tauri 2 和 Rust 的开源桌面宠物 Demo，
 | 平台 | 源码运行 | 本地构建 | 当前验证状态 |
 | --- | --- | --- | --- |
 | Windows 10/11 x64 | 支持 | 支持 | 前端构建与自动测试已通过 |
-| macOS 13+ Apple Silicon | 支持 | 支持 | 代码已适配，等待 GitHub macOS Runner 首次构建验收 |
-| macOS 13+ Intel | 支持 | 支持 | 代码已适配，等待 GitHub macOS Runner 首次构建验收 |
+| macOS 13+ Apple Silicon | 支持 | 支持 | GitHub macOS Runner 构建通过，已生成 APP 和 DMG |
+| macOS 13+ Intel | 支持 | 支持 | GitHub macOS Runner 构建通过，已生成 APP 和 DMG |
 
 Tauri 本身支持 Windows 和 macOS，但 macOS 应用必须在 Mac 或 GitHub 的 macOS Runner 上构建，不能直接在 Windows 电脑上生成 macOS 应用。
 
@@ -24,7 +24,6 @@ Tauri 本身支持 Windows 和 macOS，但 macOS 应用必须在 Mac 或 GitHub 
 - 用户自行配置 OpenAI Chat Completions 兼容 API
 - 用户自行配置天气服务，支持本机时间和上下班提醒
 - 本地音乐播放
-- 可选的图片导入、像素化、调色和近白背景移除
 - 配置和聊天记录默认保存在用户本机
 
 ## 最快开始
@@ -50,9 +49,15 @@ npm run tauri dev
 
 ```bash
 git clone https://github.com/qiruif2-netizen/pixelmate-desktop-pet.git
-cd pixelmate
+cd pixelmate-desktop-pet
 chmod +x scripts/start-macos.sh
 ./scripts/start-macos.sh
+```
+
+也可以给项目根目录中的 `启动桌面宠物.command` 执行权限，然后双击启动：
+
+```bash
+chmod +x 启动桌面宠物.command
 ```
 
 ### 只查看网页管理器
@@ -103,8 +108,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 ```text
 src/                    Vue 界面、状态和桌宠行为
 src/assets/pets/        内置原创宠物和动作精灵图
-src/components/         图鉴、自定义、陪伴和服务配置
-src/lib/                状态、AI 和图片处理
+src/components/         图鉴、陪伴和服务配置
+src/lib/                状态和 AI 服务
 src-tauri/              Tauri/Rust 桌面端
 docs/                   使用与双平台环境手册
 scripts/                平台启动脚本
@@ -116,7 +121,6 @@ scripts/                平台启动脚本
 - macOS 透明窗口需要 Tauri 的 `macos-private-api`，因此当前方案不适合提交 Mac App Store，但可用于 GitHub 开源分发。
 - 未签名安装包可能触发 Windows SmartScreen 或 macOS Gatekeeper。
 - Windows 和 macOS 必须分别在对应系统上构建。
-- 自定义单张图片只能使用通用形变动画；完整自然动作需要制作对应精灵图包。
 - 浏览器模式调用部分 AI 服务时可能受到 CORS 限制，Tauri 模式由 Rust 发起请求。
 
 ## 版权与许可证

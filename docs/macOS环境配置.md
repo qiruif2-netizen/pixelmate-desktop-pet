@@ -46,9 +46,15 @@ git --version
 
 ```bash
 git clone https://github.com/qiruif2-netizen/pixelmate-desktop-pet.git
-cd pixelmate
+cd pixelmate-desktop-pet
 npm ci
 npm run tauri dev
+```
+
+完成依赖安装后，也可以给根目录的启动文件增加执行权限，之后直接双击启动：
+
+```bash
+chmod +x 启动桌面宠物.command
 ```
 
 也可以使用项目脚本：

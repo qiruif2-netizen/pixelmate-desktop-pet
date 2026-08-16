@@ -59,6 +59,8 @@ function loadState(): AppState {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return structuredClone(defaults);
     const parsed = JSON.parse(saved) as Partial<AppState>;
+    const appearance = { ...defaults.appearance, ...parsed.appearance };
+    if (appearance.source === "custom") Object.assign(appearance, defaults.appearance);
     return {
       ...structuredClone(defaults),
       ...parsed,
@@ -67,7 +69,7 @@ function loadState(): AppState {
       ai: { ...defaults.ai, ...parsed.ai, apiKey: parsed.ai?.apiKey ?? "" },
       weather: { ...defaults.weather, ...parsed.weather },
       schedule: { ...defaults.schedule, ...parsed.schedule },
-      appearance: { ...defaults.appearance, ...parsed.appearance },
+      appearance,
       messages: parsed.messages?.slice(-60) ?? [],
     };
   } catch {

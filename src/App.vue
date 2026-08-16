@@ -6,26 +6,23 @@ import {
   Github,
   Heart,
   Home,
-  Image as ImageIcon,
   MessageCircle,
   Music2,
   PawPrint,
   Settings,
   Sparkles,
 } from "lucide-vue-next";
-import PixelStudio from "./components/PixelStudio.vue";
 import PetLibrary from "./components/PetLibrary.vue";
 import CompanionPanel from "./components/CompanionPanel.vue";
 import ServicePanel from "./components/ServicePanel.vue";
 import { appState } from "./lib/state";
 
-type Section = "home" | "library" | "image" | "companion" | "services";
+type Section = "home" | "library" | "companion" | "services";
 const section = ref<Section>("home");
 
 const nav = [
   { id: "home" as const, label: "概览", icon: Home },
   { id: "library" as const, label: "宠物图鉴", icon: PawPrint },
-  { id: "image" as const, label: "自定义", icon: ImageIcon },
   { id: "companion" as const, label: "陪伴空间", icon: Heart },
   { id: "services" as const, label: "服务配置", icon: Settings },
 ];
@@ -66,7 +63,6 @@ function go(target: Section) {
           <span class="eyebrow">YOUR DESKTOP COMPANION</span>
           <h1 v-if="section === 'home'">选一位伙伴，让桌面有温度。</h1>
           <h1 v-else-if="section === 'library'">宠物图鉴</h1>
-          <h1 v-else-if="section === 'image'">自定义角色</h1>
           <h1 v-else-if="section === 'companion'">陪伴空间</h1>
           <h1 v-else>服务配置</h1>
         </div>
@@ -122,7 +118,6 @@ function go(target: Section) {
       </section>
 
       <PetLibrary v-else-if="section === 'library'" />
-      <PixelStudio v-else-if="section === 'image'" />
       <CompanionPanel v-else-if="section === 'companion'" />
       <ServicePanel v-else />
     </main>
